@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>دفتر روزانه</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-font-face.css">
+<style>
+  :root{
+    --board:#16362b;
+    --board-2:#0f2620;
+    --paper:#f4f5f1;
+    --card:#ffffff;
+    --ink:#182620;
+    --muted:#6d7a73;
+    --line:#dfe3dd;
+    --done:#2c6e49;
+    --done-bg:#e6f2ea;
+    --miss:#a8332b;
+    --miss-bg:#faeae8;
+    --wait:#8a6d1c;
+    --wait-bg:#f7f1de;
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:Vazirmatn,"Segoe UI",Tahoma,sans-serif;
+    font-size:16px;
+    line-height:1.7;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:0 16px 64px}
+  button{font-family:inherit;font-size:inherit;cursor:pointer}
+  input,select{font-family:inherit;font-size:inherit}
+
+  /* header */
+  .board{background:var(--board);color:#eef3ef;padding:22px 0 26px;margin-bottom:-30px}
+  .board .wrap{padding-bottom:0}
+  .board-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .who{font-weight:800;font-size:20px;letter-spacing:-.2px}
+  .date{color:#a9c2b6;font-size:14px;margin-top:2px}
+  .switch{background:rgba(255,255,255,.12);color:#eef3ef;border:0;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600}
+  .switch:hover{background:rgba(255,255,255,.2)}
+
+  .sheet{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-top:18px}
+  .sheet h2{margin:0 0 4px;font-size:17px;font-weight:800}
+  .sheet p.sub{margin:0 0 14px;color:var(--muted);font-size:14px}
+
+  /* task rows */
+  .task{
+    display:flex;align-items:center;gap:12px;width:100%;
+    background:#fff;border:1px solid var(--line);border-radius:12px;
+    padding:14px 14px;margin-bottom:10px;text-align:right;color:var(--ink);
+    transition:border-color .12s,background .12s;
+  }
+  .task:hover{border-color:#c3ccc5}
+  .task .box{
+    width:26px;height:26px;flex:0 0 26px;border-radius:8px;border:2px solid #c3ccc5;
+    display:grid;place-items:center;font-size:15px;color:#fff;font-weight:700;
+  }
+  .task .title{flex:1;font-weight:600}
+  .task .stamp{font-size:12px;color:var(--muted)}
+  .task.is-done{background:var(--done-bg);border-color:#bcdcc9}
+  .task.is-done .box{background:var(--done);border-color:var(--done)}
+  .task.is-miss{background:var(--miss-bg);border-color:#eccbc7}
+  .task.is-miss .box{border-color:var(--miss);color:var(--miss);background:#fff}
+  .task[disabled]{cursor:default;opacity:.95}
+
+  .progress{height:8px;background:#e9ece7;border-radius:99px;overflow:hidden;margin:6px 0 16px}
+  .progress i{display:block;height:100%;background:var(--done);border-radius:99px;transition:width .3s}
+
+  .note{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;resize:vertical;min-height:72px;font-family:inherit}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .btn{background:var(--board);color:#fff;border:0;border-radius:10px;padding:10px 16px;font-weight:700}
+  .btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);font-weight:600}
+  .btn.danger{background:#fff;color:var(--miss);border:1px solid #eccbc7;font-weight:600}
+  .btn:hover{opacity:.92}
+  .field{border:1px solid var(--line);border-radius:10px;padding:10px 12px;flex:1;min-width:160px}
+
+  .flag{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:13px;font-weight:700}
+  .flag.done{background:var(--done-bg);color:var(--done)}
+  .flag.miss{background:var(--miss-bg);color:var(--miss)}
+  .flag.wait{background:var(--wait-bg);color:var(--wait)}
+
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:right}
+  th{color:var(--muted);font-weight:600;font-size:13px}
+  td.num{font-weight:700}
+
+  .stat{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .stat div{flex:1;min-width:120px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}
+  .stat b{display:block;font-size:22px;font-weight:800}
+  .stat span{color:var(--muted);font-size:13px}
+
+  .gate{max-width:420px;margin:14vh auto;padding:0 16px;text-align:center}
+  .gate h1{font-size:26px;font-weight:800;margin:0 0 6px}
+  .gate p{color:var(--muted);margin:0 0 22px}
+  .gate .btn{display:block;width:100%;margin-bottom:10px;padding:14px}
+
+  .hint{background:var(--wait-bg);border:1px solid #e8dcb8;color:#6b551a;border-radius:12px;padding:12px 14px;font-size:14px;margin-top:14px}
+  details summary{cursor:pointer;font-weight:700;padding:6px 0}
+  pre{background:#0f2620;color:#d8e6de;padding:14px;border-radius:12px;overflow:auto;direction:ltr;text-align:left;font-size:13px}
+  .hidden{display:none!important}
+  @media (max-width:520px){ .who{font-size:18px} .sheet{padding:14px} }
+</style>
+</head>
+<body>
+
+<!-- ============ تنظیمات ============ -->
+<script>
+  // ۱) این را از کنسول فایربیس کاپی کنید (Project settings > Your apps > Web app)
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyD1edtHEZYoinuTbgiNxhu2U_h7hQGtU30",
+    authDomain: "zabi-85737.firebaseapp.com",
+    databaseURL: "https://zabi-85737-default-rtdb.firebaseio.com",
+    projectId: "zabi-85737",
+    storageBucket: "zabi-85737.firebasestorage.app",
+    messagingSenderId: "764405625443",
+    appId: "1:764405625443:web:902265c043b180a67b3e56"
+  };
+
+  const STUDENT_NAME = "احمد";   // نام شاگرد
+  const TEACHER_PIN  = "121212";   // رمز ورود استاد
+</script>
+
+<div id="gate" class="gate">
+  <h1>دفتر روزانه</h1>
+  <p>گزارش کارهای هر روز</p>
+  <button class="btn" data-role="student">من شاگرد هستم</button>
+  <button class="btn ghost" data-role="teacher">من استاد هستم</button>
+  <div id="gateMsg" class="hint hidden"></div>
+</div>
+
+<div id="app" class="hidden">
+  <div class="board">
+    <div class="wrap">
+      <div class="board-top">
+        <div>
+          <div class="who" id="hWho"></div>
+          <div class="date" id="hDate"></div>
+        </div>
+        <button class="switch" id="btnSwitch">تغییر کاربر</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <!-- ===== نمای شاگرد ===== -->
+    <section id="viewStudent" class="hidden">
+      <div class="sheet">
+        <h2>کارهای امروز</h2>
+        <p class="sub" id="sSub"></p>
+        <div class="progress"><i id="sBar" style="width:0%"></i></div>
+        <div id="sTasks"></div>
+        <div id="sLock" class="hint hidden"></div>
+      </div>
+
+      <div class="sheet">
+        <h2>کارهای شخصی من</h2>
+        <p class="sub">می‌توانید کار دلخواه خود را بیفزایید. کارهایی که استاد تعیین کرده قابل حذف نیستند.</p>
+        <div id="sMine"></div>
+        <div class="row" style="margin-top:10px">
+          <input id="sNewTask" class="field" placeholder="کار جدید…">
+          <button class="btn" id="sAddTask">افزودن</button>
+        </div>
+      </div>
+
+      <div class="sheet">
+        <h2>یادداشت برای استاد</h2>
+        <p class="sub">اگر کاری را انجام نداده‌اید، دلیلش را اینجا بنویسید.</p>
+        <textarea id="sNote" class="note" placeholder="مثلاً: امروز مریض بودم…"></textarea>
+        <div class="row" style="margin-top:10px">
+          <button class="btn" id="sSaveNote">ثبت یادداشت</button>
+          <span id="sNoteMsg" class="stamp" style="color:var(--muted);font-size:13px"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== نمای استاد ===== -->
+    <section id="viewTeacher" class="hidden">
+      <div class="sheet">
+        <h2>گزارش امروز</h2>
+        <p class="sub" id="tSub"></p>
+        <div class="stat">
+          <div><b id="tDone">۰</b><span>انجام شده</span></div>
+          <div><b id="tMiss">۰</b><span>انجام نشده</span></div>
+          <div><b id="tStreak">۰</b><span>روزهای کامل پیاپی</span></div>
+        </div>
+        <div id="tTasks"></div>
+        <div id="tNote" class="hint hidden"></div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn ghost" id="tCopy">کپی گزارش متنی</button>
+          <span id="tCopyMsg" style="color:var(--muted);font-size:13px"></span>
+        </div>
+      </div>
+
+      <div class="sheet">
+        <h2>سوابق سی روز گذشته</h2>
+        <p class="sub">هر روزی که تک‌مارک نشده باشد، خودکار «انجام نشده» ثبت می‌شود.</p>
+        <div style="overflow:auto"><table id="tHistory"></table></div>
+      </div>
+
+      <div class="sheet">
+        <h2>بیشترین غفلت‌ها</h2>
+        <p class="sub">در سی روز گذشته</p>
+        <div style="overflow:auto"><table id="tWeak"></table></div>
+      </div>
+
+      <div class="sheet">
+        <h2>فهرست کارها</h2>
+        <p class="sub">کارهایی که شاگرد هر روز باید تک‌مارک کند.</p>
+        <div id="tTaskAdmin"></div>
+        <div class="row" style="margin-top:10px">
+          <input id="tNewTask" class="field" placeholder="کار جدید…">
+          <button class="btn" id="tAddTask">افزودن</button>
+        </div>
+      </div>
+
+      <div class="sheet">
+        <h2>مهلت ثبت روزانه</h2>
+        <p class="sub">بعد از این ساعت، صفحهٔ شاگرد قفل می‌شود و کارهای تک‌مارک‌نشده «انجام نشده» شمرده می‌شوند.</p>
+        <div class="row">
+          <input id="tDeadline" class="field" type="time" style="max-width:160px">
+          <button class="btn" id="tSaveDeadline">ذخیره</button>
+          <span id="tDeadlineMsg" style="color:var(--muted);font-size:13px"></span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+/* ---------- لایهٔ داده: فایربیس یا حالت آزمایشی ---------- */
+const configured = !!(FIREBASE_CONFIG.databaseURL && FIREBASE_CONFIG.apiKey);
+let backend;
+
+if (configured) {
+  const db = getDatabase(initializeApp(FIREBASE_CONFIG));
+  backend = {
+    live: true,
+    watch: (p, cb) => onValue(ref(db, p), s => cb(s.val())),
+    write: (p, v) => set(ref(db, p), v),
+    erase: (p) => remove(ref(db, p))
+  };
+} else {
+  const mem = {}, subs = [];
+  const dig = (path) => path.split("/").reduce((o,k)=> (o==null?null:o[k]), mem);
+  const put = (path, v) => {
+    const ks = path.split("/"); const last = ks.pop();
+    let o = mem; ks.forEach(k => { o[k] = o[k] || {}; o = o[k]; });
+    if (v === null) delete o[last]; else o[last] = v;
+    subs.forEach(s => s.cb(dig(s.p)));
+  };
+  backend = {
+    live: false,
+    watch: (p, cb) => { subs.push({p, cb}); cb(dig(p)); },
+    write: (p, v) => put(p, v),
+    erase: (p) => put(p, null)
+  };
+}
+
+/* ---------- ابزارها ---------- */
+const $ = s => document.querySelector(s);
+const fa = n => String(n).replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
+const pad = n => String(n).padStart(2, "0");
+const keyOf = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const today = () => keyOf(new Date());
+const dateOf = k => { const [y,m,d] = k.split("-").map(Number); return new Date(y, m-1, d); };
+function faDate(d){
+  try { return new Intl.DateTimeFormat("fa-AF-u-ca-persian",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(d); }
+  catch(e){ return new Intl.DateTimeFormat("fa-IR-u-ca-persian",{weekday:"long",day:"numeric",month:"long"}).format(d); }
+}
+function pastDeadline(){
+  const [h,m] = (S.settings.deadline || "21:00").split(":").map(Number);
+  const n = new Date();
+  return n.getHours() > h || (n.getHours() === h && n.getMinutes() >= m);
+}
+
+const S = { role:null, tasks:[], reports:{}, settings:{deadline:"21:00"} };
+
+/* وضعیت هر کار: انجام شده / انجام نشده / در انتظار */
+function statusOf(day, id){
+  if (S.reports?.[day]?.[id]?.done) return "done";
+  if (day > today()) return "wait";
+  if (day === today() && !pastDeadline()) return "wait";
+  return "miss";
+}
+function lastDays(n){
+  const out = []; const d = new Date();
+  for (let i=0;i<n;i++){ out.push(keyOf(d)); d.setDate(d.getDate()-1); }
+  return out;
+}
+
+/* ---------- اتصال زنده ---------- */
+backend.watch("tasks", v => {
+  S.tasks = Object.entries(v || {}).map(([id,t]) => ({id, ...t})).sort((a,b)=> (a.order||0)-(b.order||0));
+  if (!S.tasks.length && !v) seedTasks();
+  render();
+});
+backend.watch("settings", v => { S.settings = { deadline:"21:00", ...(v||{}) }; render(); });
+backend.watch("reports",  v => { S.reports = v || {}; render(); });
+
+let seeded = false;
+function seedTasks(){
+  if (seeded) return; seeded = true;
+  ["ادای نماز پنج وقت","تلاوت قرآن کریم","تکرار درس دیروز","حل تمرین‌های امروز","مطالعهٔ آزاد ۳۰ دقیقه"]
+    .forEach((title,i) => backend.write(`tasks/t${i+1}`, {title, order:i, owner:"teacher"}));
+}
+
+/* ---------- ورود ---------- */
+document.querySelectorAll("#gate [data-role]").forEach(b => b.onclick = () => {
+  if (b.dataset.role === "teacher"){
+    const pin = prompt("رمز استاد را وارد کنید:");
+    if (pin !== TEACHER_PIN){ show("#gateMsg", "رمز درست نیست. دوباره تلاش کنید."); return; }
+  }
+  S.role = b.dataset.role;
+  $("#gate").classList.add("hidden");
+  $("#app").classList.remove("hidden");
+  render();
+});
+function show(sel, txt){ const e = $(sel); e.textContent = txt; e.classList.remove("hidden"); }
+$("#btnSwitch").onclick = () => location.reload();
+
+/* ---------- رسم ---------- */
+function render(){
+  if (!S.role) return;
+  $("#hWho").textContent = S.role === "student" ? STUDENT_NAME : `دفتر ${STUDENT_NAME}`;
+  $("#hDate").textContent = faDate(new Date()) + (backend.live ? "" : " — حالت آزمایشی");
+  $("#viewStudent").classList.toggle("hidden", S.role !== "student");
+  $("#viewTeacher").classList.toggle("hidden", S.role !== "teacher");
+  S.role === "student" ? renderStudent() : renderTeacher();
+}
+
+function renderStudent(){
+  const day = today(), locked = pastDeadline();
+  const done = S.tasks.filter(t => statusOf(day, t.id) === "done").length;
+  $("#sSub").textContent = `${fa(done)} از ${fa(S.tasks.length)} کار انجام شده — مهلت ثبت تا ساعت ${fa(S.settings.deadline)}`;
+  $("#sBar").style.width = (S.tasks.length ? done/S.tasks.length*100 : 0) + "%";
+
+  const box = $("#sTasks"); box.innerHTML = "";
+  S.tasks.forEach(t => {
+    const st = statusOf(day, t.id);
+    const el = document.createElement("button");
+    el.className = "task " + (st === "done" ? "is-done" : st === "miss" ? "is-miss" : "");
+    el.innerHTML = `<span class="box">${st==="done"?"✓":st==="miss"?"✕":""}</span>
+                    <span class="title">${esc(t.title)}</span>
+                    <span class="stamp">${st==="done" ? "ثبت شد" : st==="miss" ? "انجام نشده" : ""}</span>`;
+    if (locked) el.disabled = true;
+    else el.onclick = () => backend.write(`reports/${day}/${t.id}`, st === "done" ? null : {done:true, at:Date.now()});
+    box.appendChild(el);
+  });
+
+  const lock = $("#sLock");
+  lock.classList.toggle("hidden", !locked);
+  lock.textContent = "وقت ثبت امروز تمام شد. کارهای تک‌مارک‌نشده به‌صورت خودکار «انجام نشده» به استاد گزارش شد.";
+
+  const mine = $("#sMine"); mine.innerHTML = "";
+  const own = S.tasks.filter(t => t.owner === "student");
+  if (!own.length) mine.innerHTML = `<p style="color:var(--muted);font-size:14px;margin:0">هنوز کار شخصی نیفزوده‌اید.</p>`;
+  own.forEach(t => {
+    const row = document.createElement("div");
+    row.className = "row"; row.style.marginBottom = "8px";
+    row.innerHTML = `<input class="field" value="${esc(t.title)}"><button class="btn ghost">ذخیره</button><button class="btn danger">حذف</button>`;
+    const [inp, save, del] = row.children;
+    save.onclick = () => backend.write(`tasks/${t.id}`, {title: inp.value.trim() || t.title, order: t.order||0, owner:"student"});
+    del.onclick = () => { if (confirm("این کار حذف شود؟")) backend.erase(`tasks/${t.id}`); };
+    mine.appendChild(row);
+  });
+
+  const note = S.reports?.[day]?._note || "";
+  if ($("#sNote") !== document.activeElement) $("#sNote").value = note;
+}
+$("#sAddTask").onclick = () => {
+  const v = $("#sNewTask").value.trim(); if (!v) return;
+  backend.write(`tasks/s${Date.now()}`, {title:v, order:S.tasks.length, owner:"student"});
+  $("#sNewTask").value = "";
+};
+$("#sSaveNote").onclick = () => {
+  backend.write(`reports/${today()}/_note`, $("#sNote").value.trim() || null);
+  $("#sNoteMsg").textContent = "ثبت شد";
+  setTimeout(()=> $("#sNoteMsg").textContent = "", 2000);
+};
+
+function renderTeacher(){
+  const day = today();
+  const done = S.tasks.filter(t => statusOf(day,t.id) === "done");
+  const miss = S.tasks.filter(t => statusOf(day,t.id) === "miss");
+  $("#tSub").textContent = pastDeadline() ? "روز بسته شد." : `هنوز تا ساعت ${fa(S.settings.deadline)} وقت دارد.`;
+  $("#tDone").textContent = fa(done.length);
+  $("#tMiss").textContent = fa(miss.length);
+  $("#tStreak").textContent = fa(streak());
+
+  const box = $("#tTasks"); box.innerHTML = "";
+  S.tasks.forEach(t => {
+    const st = statusOf(day, t.id);
+    const el = document.createElement("div");
+    el.className = "task " + (st==="done"?"is-done":st==="miss"?"is-miss":"");
+    el.innerHTML = `<span class="box">${st==="done"?"✓":st==="miss"?"✕":"…"}</span>
+      <span class="title">${esc(t.title)}</span>
+      <span class="flag ${st==="done"?"done":st==="miss"?"miss":"wait"}">${st==="done"?"انجام شد":st==="miss"?"انجام نشد":"در انتظار"}</span>`;
+    box.appendChild(el);
+  });
+
+  const n = S.reports?.[day]?._note;
+  const nd = $("#tNote");
+  nd.classList.toggle("hidden", !n);
+  if (n) nd.textContent = "یادداشت شاگرد: " + n;
+
+  // جدول سوابق
+  let h = `<tr><th>روز</th><th>انجام شده</th><th>انجام نشده</th><th>وضعیت</th></tr>`;
+  lastDays(30).forEach(k => {
+    const d = S.tasks.filter(t => statusOf(k,t.id)==="done").length;
+    const m = S.tasks.filter(t => statusOf(k,t.id)==="miss").length;
+    const w = S.tasks.length - d - m;
+    const flag = w ? `<span class="flag wait">در جریان</span>`
+              : m===0 ? `<span class="flag done">کامل</span>`
+              : `<span class="flag miss">${fa(m)} کار ناتمام</span>`;
+    h += `<tr><td>${faDate(dateOf(k))}</td><td class="num">${fa(d)}</td><td class="num">${fa(m)}</td><td>${flag}</td></tr>`;
+  });
+  $("#tHistory").innerHTML = h;
+
+  // ضعیف‌ترین کارها
+  let w = `<tr><th>کار</th><th>انجام نشده</th><th>انجام شده</th></tr>`;
+  S.tasks.map(t => {
+    let m=0, d=0;
+    lastDays(30).forEach(k => { const s = statusOf(k,t.id); if(s==="miss") m++; if(s==="done") d++; });
+    return {t, m, d};
+  }).sort((a,b)=>b.m-a.m).forEach(r => {
+    w += `<tr><td>${esc(r.t.title)}</td><td class="num" style="color:var(--miss)">${fa(r.m)}</td><td class="num" style="color:var(--done)">${fa(r.d)}</td></tr>`;
+  });
+  $("#tWeak").innerHTML = w;
+
+  // مدیریت کارها
+  const ad = $("#tTaskAdmin"); ad.innerHTML = "";
+  S.tasks.forEach(t => {
+    const row = document.createElement("div");
+    row.className = "row"; row.style.marginBottom = "8px";
+    row.innerHTML = `<input class="field" value="${esc(t.title)}">
+      ${t.owner === "student" ? `<span class="flag wait">افزودهٔ شاگرد</span>` : ""}
+      <button class="btn ghost">ذخیره</button><button class="btn danger">حذف</button>`;
+    const inp = row.querySelector("input");
+    const [save, del] = row.querySelectorAll("button");
+    save.onclick = () => backend.write(`tasks/${t.id}`, {title: inp.value.trim() || t.title, order: t.order||0, owner: t.owner || "teacher"});
+    del.onclick = () => { if (confirm("این کار حذف شود؟")) backend.erase(`tasks/${t.id}`); };
+    ad.appendChild(row);
+  });
+
+  if ($("#tDeadline") !== document.activeElement) $("#tDeadline").value = S.settings.deadline;
+}
+
+function streak(){
+  let n = 0;
+  for (const k of lastDays(90)){
+    if (k === today() && !pastDeadline()) continue;
+    const ok = S.tasks.length && S.tasks.every(t => statusOf(k,t.id) === "done");
+    if (ok) n++; else break;
+  }
+  return n;
+}
+
+$("#tAddTask").onclick = () => {
+  const v = $("#tNewTask").value.trim(); if (!v) return;
+  backend.write(`tasks/t${Date.now()}`, {title:v, order:S.tasks.length, owner:"teacher"});
+  $("#tNewTask").value = "";
+};
+$("#tSaveDeadline").onclick = () => {
+  backend.write("settings/deadline", $("#tDeadline").value || "21:00");
+  $("#tDeadlineMsg").textContent = "ذخیره شد";
+  setTimeout(()=> $("#tDeadlineMsg").textContent = "", 2000);
+};
+$("#tCopy").onclick = async () => {
+  const day = today();
+  let txt = `گزارش ${faDate(new Date())}\n`;
+  S.tasks.forEach(t => {
+    const s = statusOf(day,t.id);
+    txt += `${s==="done"?"✅":s==="miss"?"❌":"⏳"} ${t.title}\n`;
+  });
+  const n = S.reports?.[day]?._note; if (n) txt += `\nیادداشت: ${n}`;
+  try { await navigator.clipboard.writeText(txt); $("#tCopyMsg").textContent = "کپی شد"; }
+  catch(e){ prompt("متن گزارش:", txt); }
+  setTimeout(()=> $("#tCopyMsg").textContent = "", 2000);
+};
+
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+if (!configured) seedTasks();
+</script>
+</body>
+</html>
